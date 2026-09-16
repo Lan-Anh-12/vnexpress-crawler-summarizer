@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Báo Tóm Tắt AI - VnExpress</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+    <header>
+        <h1>📰 BÁO TÓM TẮT AI</h1>
+        <p>Cập nhật tự động từ VnExpress & Tóm tắt bởi Gemini AI</p>
+        
+        <!-- Khu vực nút bấm: Sẽ tự động sinh ra dựa trên dữ liệu thật -->
+        <div id="filter-container" class="filter-container">
+            <!-- Nút 'Tất cả' mặc định -->
+            <button class="btn-filter active" onclick="filterCategory('Tất cả')">Tất cả</button>
+        </div>
+    </header>
+
+    <main class="container">
+        <!-- Khu vực hiển thị danh sách bài báo -->
+        <div id="news-grid" class="news-grid">
+            <div class="loading">Đang tải dữ liệu báo tóm tắt...</div>
+        </div>
+    </main>
+
+    <footer>
+        <p>© 2026 Đồ án cào báo tự động Serverless - Không Backend</p>
+    </footer>
+
+    <script>
+        let allArticles = []; // Nơi lưu trữ toàn bộ bài viết đọc từ file JSON
+
+        // 1. Hàm đọc file data.json tĩnh
+        async function loadNews() {
+            try {
+                // Đọc file json nằm cùng thư mục
+                const response = await fetch('data.json');
+                if (!response.ok) throw new Error('Không thể tải file data.json');
+                
+                allArticles = await response.json();
+                
+                // Tự động tạo các nút bấm danh mục dựa trên dữ liệu thực tế
+                generateCategoryButtons();
+                
+                // Hiển thị toàn bộ bài viết lên màn hình
+                displayArticles(allArticles);
+            } catch (error) {
+                console.error(error);
+                document.getElementById('news-grid').innerHTML = `
+                    <div class="error">
+                        <p>Chưa có dữ liệu báo thực tế. Hãy chạy file <strong>crawler.py</strong> để sinh ra file data.json thật!</p>
+                    </div>
+                `;
+            }
+        }
+
+        // 2. Hàm tự động sinh nút bấm theo các danh mục có trong dữ liệu
+        function generateCategoryButtons() {
+            const container = document.getElementById('filter-container');
+            const categories = [...new Set(allArticles.map(item => item.category))];
+            
+            if (categories.length <= 1) {
+                container.innerHTML = categories.map(cat => 
+                    `<button class="btn-filter active" onclick="filterCategory('${cat}')">${cat}</button>`
+                ).join('');
+                return;
+            }
+            
+            let buttonsHtml = `<button class="btn-filter active" onclick="filterCategory('Tất cả')">Tất cả</button>`;
+            buttonsHtml += categories.map(cat => 
+                `<button class="btn-filter" onclick="filterCategory('${cat}')">${cat}</button>`
+            ).join('');
+            container.innerHTML = buttonsHtml;
+        }
+
+        // 3. Hàm hiển thị danh sách bài báo ra màn hình dưới dạng thẻ (Cards)
+        function displayArticles(articles) {
+            const grid = document.getElementById('news-grid');
+            if (articles.length === 0) {
+                grid.innerHTML = '<div class="no-data">Không có bài viết nào thuộc thể loại này.</div>';
+                return;
+            }
+
+            grid.innerHTML = articles.map(item => {
+                // Định dạng lại nội dung tóm tắt từ AI thành danh sách gạch đầu dòng HTML chuẩn chỉnh
+                const summaryHtml = item.summary
+                    .split('\n')
+                    .map(line => line.trim())
+                    .filter(line => line.length > 0)
+                    .map(line => `<li>${line.replace(/^[-\*\u2022]\s*/, '')}</li>`)
+                    .join('');
+
+                return `
+                    <div class="news-card">
+                        <div class="card-header">
+                            <span class="badge">${item.category}</span>
+                            <span class="date">${new Date(item.created_at).toLocaleDateString('vi-VN')}</span>
+                        </div>
+                        <h2 class="article-title">${item.title}</h2>
+                        <ul class="article-summary">
+                            ${summaryHtml}
+                        </ul>
+                        <a href="${item.url}" target="_blank" class="read-more">Đọc bài gốc tại VnExpress →</a>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        // 4. Hàm xử lý sự kiện khi người dùng click vào nút lọc danh mục
+        function filterCategory(category) {
+            // Thay đổi trạng thái sáng/tối (active) của nút bấm được chọn
+            const buttons = document.querySelectorAll('.btn-filter');
+            buttons.forEach(btn => {
+                if (btn.innerText === category) btn.classList.add('active');
+                else btn.classList.remove('active');
+            });
+
+            // Tiến hành lọc mảng dữ liệu dựa trên danh mục được bấm
+            if (category === 'Tất cả') {
+                displayArticles(allArticles);
+            } else {
+                const filtered = allArticles.filter(item => item.category === category);
+                displayArticles(filtered);
+            }
+        }
+
+        // Tự động kích hoạt luồng đọc dữ liệu ngay khi tải xong trang web
+        loadNews();
+    </script>
+</body>
+</html>
