@@ -104,7 +104,7 @@ def main():
                 print("Bài viết có nội dung chữ quá ít or không thể cào, bỏ qua.")
                 continue
                 
-            # 3. Gọi hàm tóm tắt từ ai_service (Bản Gemini 3.5 Flash)
+            # 3. Gọi hàm tóm tắt từ ai_service 
             summary_result = summarize_text(full_content)
             if not summary_result:
                 print("Không lấy được tóm tắt từ AI, bỏ qua.")
@@ -112,7 +112,7 @@ def main():
                 time.sleep(6)
                 continue
                 
-            # 4. Thực hiện chèn dữ liệu trực tiếp vào bảng article_summary của bạn
+            # 4. Thực hiện chèn dữ liệu trực tiếp vào bảng article_summary
             try:
                 final_data = {
                     "url": url,
@@ -134,5 +134,3 @@ def main():
     print("HOÀN THÀNH TOÀN BỘ QUY TRÌNH")
     print("========================================")
 
-if __name__ == "__main__":
-    main()
