@@ -8,8 +8,8 @@ supabase: Client = create_client(config.SUPABASE_URL, config.SUPABASE_KEY)
 # check url đã tồn tại hay chưa
 def is_url_exists(url):
     try:
-        check_db = supabase.table('article_summary').select('id').eq("url",).execute()
-        if check_db.data():
+        check_db = supabase.table('article_summary').select('id').eq("url",url).execute()
+        if check_db.data:
             return True
         else:
             return False
