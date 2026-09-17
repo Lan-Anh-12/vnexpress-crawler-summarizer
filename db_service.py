@@ -24,7 +24,7 @@ def export_to_json():
     try:
         db_data = supabase.table("article_summary")\
             .select("*")\
-            .order("created_at", desc=True)\
+            .order("id", desc=True)\
             .limit(config.MAX_ARTICLES_TO_EXPORT)\
             .execute()
 
